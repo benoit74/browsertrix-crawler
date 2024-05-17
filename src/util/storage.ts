@@ -201,6 +201,8 @@ export async function getDirSize(dir: string) {
   return size;
 }
 
+let projectedLogged = false;
+
 export async function checkDiskUtilization(
   // TODO: Fix this the next time the file is edited.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -248,14 +250,29 @@ export async function checkDiskUtilization(
     logger.info(
       `Disk utilization projected to reach threshold ${projectedUsedPercentage}% > ${params.diskUtilization}%, stopping`,
     );
+
+    if (!projectedLogged) {
+      logger.info(`kbUsed: ${kbUsed}`)
+      logger.info(`kbTotal: ${kbTotal}`)
+      logger.info(`kbArchiveDirSize: ${kbArchiveDirSize}`)
+      logger.info(`usedPercentage: ${usedPercentage}`)
+      const adjustedUsedPercentage = calculatePercentageUsed(
+        kbUsed,
+        kbTotal,
+      );
+      logger.info(`adjustedUsedPercentage: ${adjustedUsedPercentage}`)
+      logger.info(`projectedTotal: ${projectedTotal}`)
+      logger.info(`projectedUsedPercentage: ${projectedUsedPercentage}`)
+      projectedLogged = true;
+    }    
+    
     return {
-      stop: true,
+      stop: false,
       used: usedPercentage,
       projected: projectedUsedPercentage,
       threshold: params.diskUtilization,
     };
   }
-
   return {
     stop: false,
     used: usedPercentage,
